@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monopoli Nusantara – Edisi Sambat</title>
+<style>
+:root{--bg:#eef1fb;--pn:#fff;--tx:#14183a;--mu:#5b648f;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#070b18;--pn:#131a36;--tx:#eef1ff;--mu:#8e98c4}}
+:root[data-theme="dark"]{--bg:#070b18;--pn:#131a36;--tx:#eef1ff;--mu:#8e98c4}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:14px/1.4 "Trebuchet MS","Segoe UI",system-ui,sans-serif}
+#app{display:flex;height:100%;gap:12px;padding:12px}
+#stage{flex:1;min-width:0;min-height:0;overflow:hidden;display:grid;place-items:center;border-radius:20px;background:radial-gradient(circle at 25% 15%,#243569,#070b18 70%)}
+#stage{position:relative}canvas{position:absolute;inset:0;display:block;touch-action:none;cursor:grab}
+aside{width:320px;display:flex;flex-direction:column;gap:10px;min-height:0}
+h1{margin:0;padding:10px 12px 8px;font:900 19px/1.1 Georgia,serif;background:var(--pn);border-radius:12px;border-top:5px solid #c8102e;position:relative}
+h1 small{display:block;font:italic 400 12px system-ui;color:var(--mu);margin-top:3px}
+#pl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pc{background:var(--pn);border-left:5px solid var(--c);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column;transition:transform .3s,box-shadow .3s}
+.pc span{font-weight:700}.pc small{color:var(--mu)}
+.pc.on{box-shadow:0 0 0 2px var(--c),0 0 16px var(--c);transform:translateY(-2px)}
+.pc.out{opacity:.35;filter:grayscale(1)}
+#st{min-height:44px;padding:9px 11px;background:var(--pn);border-radius:10px;font-weight:600}
+#bt{display:flex;gap:8px;min-height:48px}
+button{flex:1;padding:12px;border:0;border-radius:12px;font:800 15px system-ui;cursor:pointer;color:#1a1200;background:linear-gradient(#ffd966,#f2a900);box-shadow:0 4px 0 #a36d00;transition:transform .1s,box-shadow .1s}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #a36d00}
+button:focus-visible{outline:3px solid #c8102e;outline-offset:2px}
+button[hidden]{display:none}
+#skip{background:linear-gradient(#e6e9f7,#aab2d6);box-shadow:0 4px 0 #6f7799}
+#lg{flex:1;overflow:auto;background:var(--pn);border-radius:10px;padding:8px 10px;font-size:12.5px;min-height:70px}
+#lg div{padding:4px 0;border-bottom:1px solid #8884;animation:in .35s}
+@keyframes in{from{opacity:0;transform:translateX(12px)}}
+#ov{position:fixed;inset:0;display:grid;place-items:center;background:#050914cc;backdrop-filter:blur(6px);z-index:9}
+#ov[hidden]{display:none}
+#ov>div{background:var(--pn);padding:26px 30px;border-radius:20px;text-align:center;max-width:340px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+#ov h2{font:900 26px Georgia,serif;margin:0 0 8px}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+#lb{position:fixed;inset:0;display:grid;place-items:center;padding:16px;background:radial-gradient(circle at 30% 20%,#243569,#070b18 75%);z-index:8;overflow:auto}
+#lb[hidden]{display:none}
+#lb>div{background:var(--pn);padding:24px 26px;border-radius:20px;width:min(380px,100%);display:flex;flex-direction:column;gap:12px;border-top:6px solid #c8102e}
+#lb h2{font:900 26px Georgia,serif;margin:0}#lb p{margin:-8px 0 0;color:var(--mu);font-style:italic}
+#lb input[type=text]{width:100%;padding:11px 12px;border-radius:10px;border:2px solid #8886;background:var(--bg);color:var(--tx);font:700 15px system-ui}
+.row{display:flex;gap:8px}.row input{flex:2}.row button{flex:1}
+#lst div{padding:6px 10px;background:var(--bg);border-radius:8px;margin-bottom:6px;font-weight:700}
+#hint{color:var(--mu);min-height:18px}.or{color:var(--mu);text-align:center;font-size:12.5px}
+button:disabled{opacity:.45;cursor:not-allowed}
+#turn,#tip{position:absolute;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;padding:8px 18px;border-radius:999px;font-weight:800;background:#0a1030cc;color:#fff;backdrop-filter:blur(6px);border:1px solid #ffffff2a;max-width:94%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 6px 20px #0006}
+#turn{top:12px;transition:background .3s}#tip{bottom:12px;font-weight:600;font-size:13px}
+@media (max-width:820px){#app{flex-direction:column;padding:8px;gap:8px}aside{width:auto;flex:0 0 auto;height:40%}#pl{grid-template-columns:repeat(4,1fr)}.pc{padding:4px 6px;font-size:11px}h1{display:none}}
+@media (prefers-reduced-motion:reduce){#lg div,#ov>div{animation:none}}
+</style></head><body>
+<div id="app">
+<div id="stage"><canvas id="c" aria-label="Papan Monopoli Nusantara"></canvas><div id="turn" hidden></div><div id="tip"></div></div>
+<aside>
+<h1>MONOPOLI NUSANTARA<small>Edisi Sambat Nasional</small></h1>
+<div id="pl"></div>
+<div id="st">Siap-siap, gaji UMR menanti.</div>
+<div id="bt"><button id="roll" hidden>🎲 Lempar dadu</button><button id="buy" hidden>Beli</button><button id="skip" hidden>Lewati</button></div>
+<div id="lg"></div>
+</aside></div>
+<div id="lb"><div>
+<h2>Monopoli Nusantara</h2><p>Edisi Sambat Nasional</p>
+<input id="nm" type="text" maxlength="14" placeholder="Namamu" value="Pemain">
+<button id="solo">Main solo lawan bot</button>
+<div class="or">atau main online bareng teman</div>
+<div class="row"><input id="rc" type="text" maxlength="12" placeholder="Kode ruang"><button id="jn">Gabung</button></div>
+<div id="wr" hidden><div id="lst"></div><label><input type="checkbox" id="fb" checked> Isi kursi kosong dengan bot</label><button id="go" style="width:100%;margin-top:8px">Mulai game</button></div>
+<small id="hint"></small>
+</div></div>
+<div id="ov" hidden><div><h2></h2><p></p><button onclick="location.reload()">Main lagi</button></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+const $=s=>document.querySelector(s),cv=$("#c");
+const sleep=ms=>new Promise(r=>setTimeout(r,ms)),rnd=a=>a[RN()*a.length|0];
+let seed=1;function RN(){seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+const tween=(ms,f)=>new Promise(r=>{const t0=performance.now();(function s(n){const t=Math.min(1,(n-t0)/ms);f(t);t<1?requestAnimationFrame(s):r()})(t0)});
+const G={brown:"#8d5a3b",lb:"#79d2f5",pk:"#ee6aa7",or:"#f5993a",rd:"#e0443e",yl:"#f2cf3d",gr:"#2fb36b",db:"#3558e0",rail:"#454d6b",ut:"#9aa3c7"};
+const T=[["🏁","GAJI UMR","go"],["🍛","Warteg Sisa Gaji","p",60,"brown"],["🃏","Kartu Nasib","c"],["🏚️","Kontrakan Petak","p",60,"brown"],["🧾","Pajak PPN 12%","tax",100],["🚆","KRL Berdesakan","p",200,"rail"],["☕","Kopi Gula Aren","p",100,"lb"],["🃏","Kartu Nasib","c"],["🍜","Burjo Anak Kos","p",100,"lb"],["🏮","Angkringan Jogja","p",120,"lb"],
+["🕴️","Dipanggil KPK","jail"],["🏪","Warung Madura","p",140,"pk"],["💡","Token PLN","p",150,"ut"],["🛵","Ojol Promo Hilang","p",140,"pk"],["🏢","Kos Jaksel","p",160,"pk"],["🛣️","Tol Cipali","p",200,"rail"],["🏍️","Cicilan Motor","p",180,"or"],["🃏","Kartu Nasib","c"],["📱","Pinjol 0,5%/hari","p",180,"or"],["🛒","Paylater Checkout","p",200,"or"],
+["😴","Rebahan","free"],["🚗","Macet Sudirman","p",220,"rd"],["🃏","Kartu Nasib","c"],["🌊","Banjir Langganan","p",220,"rd"],["🚧","Proyek Mangkrak","p",240,"rd"],["✈️","Bandara Delay","p",200,"rail"],["⛽","Pertalite Langka","p",260,"yl"],["🎫","Tiket Konser War","p",260,"yl"],["🚰","PDAM Keruh","p",150,"ut"],["🏝️","Healing Bali","p",280,"yl"],
+["👮","Damai di Tempat","gj"],["🦄","Startup Unicorn","p",300,"gr"],["🤳","Endorse Influencer","p",300,"gr"],["🃏","Kartu Nasib","c"],["💻","Co-working SCBD","p",320,"gr"],["🚄","Whoosh Rugi","p",200,"rail"],["🃏","Kartu Nasib","c"],["🏠","Rumah Subsidi","p",350,"db"],["💎","Pajak Mewah","tax",100],["🏗️","Proyek IKN","p",400,"db"]];
+const K=[["Bansos cair, tapi dipotong “biaya administrasi”",40],["THR cair, langsung ludes buat mudik",-80],["Kena tilang elektronik, padahal motor di rumah",-50],["Naik jabatan lewat “orang dalam”",100],["Ban bocor di tol, derek minta Rp1 jt",-40],["Konten viral 15 detik, endorse masuk",70],["Cashback e-wallet cuma Rp500 perak",10],["Harga cabai naik, sambal jadi barang mewah",-60],["Ketahuan pamer harta di medsos","jail"],["Rapat yang harusnya cukup jadi email, lanjut ke GAJI",0,"go"]];
+const RT=["Dompet menjerit.","Gaji bulan ini resmi gaib.","Katanya “koordinasi”, ujungnya transfer.","Alhamdulillah, masih bisa napas.","Pajaknya mana? Ah, sudahlah."],BY=["Notaris bilang ada “biaya tak terduga”.","Cicilan 30 tahun dimulai.","Properti naik terus, gaji enggak.","Investasi bodong? Semoga bukan."],SL=["Gaji UMR, cicilan UMKM","Rakyat sabar, pejabat liburan","Naik pajak, naik darah","Yang bayar kamu, yang lain “koordinasi”"];
+let P=[];const AV=[["🛵","#ffcf4a"],["🐔","#ff6b6b"],["🕶️","#6bd5ff"],["💼","#9bff8a"]],BN=["Bang Jago","Mbak Influencer","Pak Pejabat","Kang Ojol"],clean=v=>String(v).replace(/[^\p{L}\p{N} _.-]/gu,"").trim().slice(0,14)||"Pemain";
+const S=1000,C=130,W=(S-2*C)/9;let cur=0,own={},hov=-1,over=0,fl=[],pt=[],last=0,me=-1,room=null,started=0,Q=[],Wt=null,lastN={},myN=0;const D={a:1,b:1,p:1,v:[3,4],sp:[{ax:null,n:0,yaw:.4},{ax:null,n:0,yaw:-.5}]};
+
+function R(i){if(i%10==0)return[[S-C,S-C],[0,S-C],[0,0],[S-C,0]][i/10].concat([C,C,0]);if(i<10)return[S-C-i*W,S-C,W,C,1];if(i<20)return[0,S-C-(i-10)*W,C,W,2];if(i<30)return[C+(i-21)*W,0,W,C,3];return[S-C,C+(i-31)*W,C,W,4]}
+const ctr=i=>{const[a,b,w,h]=R(i);return[a+w/2,b+h/2]};
+function off(p,i){const[a,b,w,h,s]=R(i),bh=C*.2,col=G[T[i][4]],k=p.id;let x0=a,y0=b,cw=w,ch=h;if(col){if(s==1){y0+=bh;ch-=bh}else if(s==2)cw-=bh;else if(s==3)ch-=bh;else{x0+=bh;cw-=bh}}
+return s==2||s==4?[x0+cw*(.16+.23*k),y0+ch*.9]:[x0+cw*(.3+.4*(k%2)),y0+ch*(.79+.15*(k>>1))]}
+const money=v=>"Rp"+v+" jt",st=m=>$("#st").textContent=m;
+function log(m){const l=$("#lg"),d=document.createElement("div");d.innerHTML=m;l.prepend(d);while(l.children.length>40)l.lastChild.remove()}
+function ui(){$("#pl").innerHTML=P.map(p=>`<div class="pc${p.id==cur?" on":""}${p.out?" out":""}" style="--c:${p.c}"><b>${p.e} ${p.n}</b><span>${money(p.cash)}</span><small>${Object.keys(own).filter(k=>own[k]==p).length} aset${p.jail?" · ditahan":""}</small></div>`).join("")}
+let ac;const bp=(f,d=.08,v=.04)=>{try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type="triangle";g.gain.value=v;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);o.stop(ac.currentTime+d)}catch(e){}};
+
+const bs=()=>document.querySelectorAll("#bt button");
+function sendAct(id){bs().forEach(q=>q.hidden=1);const a={k:"a",seat:me,id,n:++myN};if(!room)return deliver(a);room.emit("act",a).catch(()=>{});const iv=setInterval(()=>{if((lastN[me]|0)>=a.n)clearInterval(iv);else room.emit("act",a).catch(()=>{})},1500)}
+bs().forEach(b=>b.onclick=()=>sendAct(b.id));
+function deliver(m){if(m.k=="a"){if((lastN[m.seat]|0)>=m.n)return;lastN[m.seat]=m.n}Q.push(m);pump()}
+function pump(){while(Wt&&Q.length){const m=Q.shift(),w=Wt;if(m.k=="b"){const q=P[m.seat];if(q){q.bot=1;q.left=1}if(m.seat==w.s){Wt=null;w.r("bot")}}else if(m.seat==w.s&&w.ids.includes(m.id)){Wt=null;w.r(m.id)}}}
+function ask(s,ids){if(P[s].bot)return Promise.resolve("bot");bs().forEach(b=>b.hidden=s!=me||!ids.includes(b.id));if(s!=me)st(`Menunggu ${P[s].n}…`);return new Promise(r=>{Wt={s,ids,r};pump()})}
+function pay(p,to,v){p.cash-=v;to&&(to.cash+=v);fx(p,-v);to&&fx(to,v);bp(180,.12);if(p.cash<0)bank(p);ui()}
+const worth=p=>p.cash+Object.keys(own).filter(k=>own[k]==p).reduce((s,k)=>s+T[k][3],0);
+function bank(p){p.out=1;Object.keys(own).forEach(k=>own[k]==p&&delete own[k]);log(`💥 <b>${p.n}</b> bangkrut. Ditagih debt collector, dikira sedekah.`);const alive=P.filter(q=>!q.out);if(alive.length<2||!alive.some(q=>!q.bot)){end(alive.sort((a,b)=>worth(b)-worth(a))[0]||p)}}
+function end(w){over=1;$("#ov h2").textContent=w.id==me?"Kamu juara! 🏆":w.n+" menang 🏆";$("#ov p").textContent=w.id==me?"Kaya raya di papan, tetap ngontrak di dunia nyata.":"Yang kaya makin kaya. Realistis, bukan?";$("#ov").hidden=0}
+function rent(i){const t=T[i],o=own[i],g=t[4],set=T.map((q,k)=>k).filter(k=>T[k][4]==g),n=set.filter(k=>own[k]==o).length;if(g=="rail")return 40*n;if(g=="ut")return 4*(D.a+D.b)*(n>1?2:1);return Math.ceil(t[3]/4)*(n==set.length?2:1)}
+
+async function move(p,n){for(let k=0;k<n;k++){const b=(p.pos+1)%40,[ax,ay]=off(p,p.pos),[bx,by]=off(p,b);await tween(170,t=>{p.mv={x:ax+(bx-ax)*t,y:ay+(by-ay)*t,z:Math.sin(t*Math.PI)*C*.35}});p.mv=null;p.pos=b;bp(480+k*25,.05,.03);if(b==0){p.cash+=150;fx(p,150);ui();log(`${p.e} ${p.n} lewat <b>GAJI UMR</b> +Rp150 jt. Habis buat cicilan, tentu saja.`)}}}
+async function jump(p,to){const[ax,ay]=off(p,p.pos),[bx,by]=off(p,to);await tween(650,t=>{p.mv={x:ax+(bx-ax)*t,y:ay+(by-ay)*t,z:Math.sin(t*Math.PI)*C*1.2}});p.mv=null;p.pos=to;bp(200,.2)}
+async function land(p){const i=p.pos,t=T[i],ty=t[2];
+if(ty=="p"){const o=own[i];
+if(!o){if(p.cash>=t[3]){let buy;if(!p.bot){st(p.id==me?`Beli ${t[1]} seharga ${money(t[3])}?`:`${p.n} menimbang ${t[1]}…`);buy=await ask(p.id,["buy","skip"])=="buy"}if(p.bot){await sleep(500);buy=p.cash-t[3]>=120||RN()<.3}
+if(buy){pay(p,null,t[3]);own[i]=p;bp(700,.15);log(`${t[0]} ${p.n} membeli <b>${t[1]}</b>. ${rnd(BY)}`)}else log(`${p.n} melewatkan ${t[1]}. Hemat atau pelit, beda tipis.`)}else log(`${p.n} cuma bisa melirik ${t[1]}. Saldo tipis, gaya selangit.`)}
+else if(o!=p){const r=rent(i);log(`${p.n} bayar sewa ${money(r)} ke ${o.n}. ${rnd(RT)}`);pay(p,o,r)}}
+else if(ty=="tax"){log(`🧾 ${p.n} kena <b>${t[1]}</b> ${money(t[3])}. Katanya buat pembangunan.`);pay(p,null,t[3])}
+else if(ty=="c"){const[m,v,g]=rnd(K);log(`🃏 <i>${m}</i>`);st(m);await sleep(p.bot?900:1700);if(v=="jail")await arrest(p);else if(g=="go"){await jump(p,0);p.cash+=150;fx(p,150);ui()}else if(v>0){p.cash+=v;fx(p,v);ui()}else if(v<0)pay(p,null,-v)}
+else if(ty=="gj"){log(`👮 Razia! ${p.n} bayar “uang damai” Rp50 jt, tetap diinterogasi.`);pay(p,null,50);if(!p.out)await arrest(p)}
+else if(ty=="free")log(`😴 ${p.n} rebahan. Produktivitas nasional turun 0,1%.`);}
+async function arrest(p){await jump(p,10);p.jail=1}
+async function play(){while(!over){const p=P[cur];ui();if(!p.out){if(p.jail){p.jail--;log(`🕴️ ${p.n} masih diperiksa KPK, skip giliran.`);st(`${p.n} lagi “dimintai keterangan”.`);await sleep(900)}
+else{st(p.id==me?"Giliranmu! Semoga nggak kena pajak lagi.":`Giliran ${p.n}…`);if(p.bot)await sleep(700);else await ask(p.id,["roll"]);const n=await roll();log(`${p.e} ${p.n} melempar <b>${D.a}+${D.b}</b>`);await move(p,n);await land(p);await sleep(450)}}
+cur=(cur+1)%P.length}}
+/* ---------- Three.js 3D renderer ---------- */
+const KW=.0108,wx=v=>(v-500)*KW,TOP=.14,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let VW=800,VH=600,RD,SC,CM,RC,AN=4,PG,GL,DU,CT,CTX,introT0=performance.now(),hovK="",turnK="",slK=-1;
+const TX=[],TM=[],lift=Array(40).fill(0),lv=Array(40).fill(0),own0=[],PW={},coins=[],pop=[],DM=[],FQ={},cam={az:0,po:.86,zoom:1,taz:0,tpo:.86,tz:1,fx:0,fz:0};
+const hx=c=>[1,3,5].map(i=>parseInt(c.substr(i,2),16)),mh=(a,b,t)=>{a=hx(a);b=hx(b);return"#"+a.map((v,i)=>(v+(b[i]-v)*t|0).toString(16).padStart(2,"0")).join("")};
+const lc=h=>new THREE.Color(h).convertSRGBToLinear(),CORN={go:"#b9f0c8",jail:"#ffd2a6",free:"#c4dcff",gj:"#ffb8b8"};
+const N6={1:[0,1,0],6:[0,-1,0],3:[1,0,0],4:[-1,0,0],2:[0,0,1],5:[0,0,-1]},FACE=[3,4,1,6,2,5];
+const cvs=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return c},stex=c=>{const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=AN;return t};
+const EMO='"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",serif';
+function desc(i){const t=T[i],o=own[i];return t[2]=="p"?(o?"Milik "+o.n+" · sewa "+money(rent(i)):"Dijual "+money(t[3])):t[2]=="tax"?"Pajak "+money(t[3]):{go:"Lewat sini dapat Rp150 jt",c:"Ambil nasibmu",jail:"Cuma mampir… atau ditahan",free:"Rebahan, gratis",gj:"Razia! Bayar damai, lalu diperiksa"}[t[2]]||""}
+function paintTile(i){const t=T[i],[a,b,w,h,s]=R(i),o=own[i],S3=3.4,cn=TX[i]?TX[i].image:cvs(0,0);cn.width=Math.round(w*S3);cn.height=Math.round(h*S3);const g=cn.getContext("2d");g.scale(S3,S3);
+const base=CORN[t[2]]||(t[2]=="c"?"#ffe3a0":"#f2e9d0"),tc=o?mh(base,o.c,.3):base,col=G[t[4]],bh=C*.2,gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,mh(tc,"#ffffff",.45));gr.addColorStop(1,tc);g.fillStyle=gr;g.fillRect(0,0,w,h);
+let x0=0,y0=0,cw=w,ch=h;if(col){g.fillStyle=col;if(s==1){g.fillRect(0,0,w,bh);y0=bh;ch-=bh}else if(s==2){g.fillRect(w-bh,0,bh,h);cw-=bh}else if(s==3){g.fillRect(0,h-bh,w,bh);ch-=bh}else{g.fillRect(0,0,bh,h);x0=bh;cw-=bh}}
+const cor=s==0,mw=cw-10;let fs=cor?15:11.5;g.font=`700 ${fs}px "Trebuchet MS",sans-serif`;const ws=t[1].split(" "),wd=Math.max(...ws.map(q=>g.measureText(q).width));if(wd>mw)fs*=mw/wd;const ft=`700 ${fs}px "Trebuchet MS",sans-serif`;g.font=ft;
+const ln=[];let cu="";ws.forEach(q=>{const tr=cu?cu+" "+q:q;if(cu&&g.measureText(tr).width>mw){ln.push(cu);cu=q}else cu=tr});ln.push(cu);
+const es=Math.min(cw*.3,ch*.25)*(cor?1.2:1),cx=x0+cw/2;let y=y0+4;g.textAlign="center";g.textBaseline="top";g.fillStyle="#2a2418";g.font=`${es}px ${EMO}`;g.fillText(t[0],cx,y);y+=es*1.05;g.font=ft;ln.forEach(q=>{g.fillText(q,cx,y);y+=fs*1.05});
+if(t[3]){g.fillStyle="#6b5a2a";g.fillText((t[2]=="tax"?"-":"Rp")+t[3]+"jt",cx,y)}
+if(o){g.fillStyle=o.c;g.strokeStyle="#fff";g.lineWidth=2;g.beginPath();g.arc(x0+cw-9,y0+9,6,0,7);g.fill();g.stroke()}
+g.strokeStyle="rgba(60,40,0,.25)";g.lineWidth=1;g.strokeRect(.5,.5,w-1,h-1);return cn}
+function tex(i){const c=paintTile(i);if(!TX[i])TX[i]=stex(c);else TX[i].needsUpdate=true;return TX[i]}
+function paintCenter(n){const N=1024,cx=512,cn=CT||(CT=cvs(N,N)),g=cn.getContext("2d");let gr=g.createRadialGradient(cx,cx,60,cx,cx,760);gr.addColorStop(0,"#2d4090");gr.addColorStop(1,"#0d1535");g.fillStyle=gr;g.fillRect(0,0,N,N);
+g.globalAlpha=.07;g.fillStyle="#fff";for(let a=0;a<14;a++)for(let b=0;b<30;b++){const px=a*80+(b%2)*40,py=b*36;g.beginPath();g.moveTo(px,py-20);g.lineTo(px+20,py);g.lineTo(px,py+20);g.lineTo(px-20,py);g.fill()}g.globalAlpha=1;
+g.textAlign="center";g.textBaseline="alphabetic";g.font="900 150px Georgia,serif";g.fillStyle="#c8102e";g.fillText("MONOPOLI",cx+6,226);gr=g.createLinearGradient(0,110,0,225);gr.addColorStop(0,"#fff1a8");gr.addColorStop(1,"#f0a800");g.fillStyle=gr;g.fillText("MONOPOLI",cx,220);
+g.letterSpacing="14px";g.font="800 72px Georgia,serif";g.fillStyle="#fff";g.fillText("NUSANTARA",cx+7,310);g.letterSpacing="0px";g.fillStyle="#c8102e";g.fillRect(cx-230,334,460,10);g.fillStyle="#fff";g.fillRect(cx-230,344,460,10);
+g.font="italic 40px system-ui,sans-serif";g.fillStyle="#b9c4f5";g.fillText("“"+SL[n%SL.length]+"”",cx,412);g.letterSpacing="8px";g.font="700 32px system-ui,sans-serif";g.fillStyle="#f0c34a";g.fillText("EDISI SAMBAT NASIONAL",cx+4,930);g.letterSpacing="0px";
+if(!CTX)CTX=stex(cn);else CTX.needsUpdate=true}
+function pips(v){const c=cvs(256,256),g=c.getContext("2d"),gr=g.createLinearGradient(0,0,256,256);gr.addColorStop(0,"#ffffff");gr.addColorStop(1,"#dcdfee");g.fillStyle=gr;g.fillRect(0,0,256,256);g.fillStyle=v==1?"#c8102e":"#1c2140";PIP[v].forEach(k=>{g.beginPath();g.arc(64+(k%3)*64,64+(k/3|0)*64,v==1?34:20,0,7);g.fill()});return stex(c)}
+const PIP=[[],[4],[0,8],[0,4,8],[0,2,6,8],[0,2,4,6,8],[0,2,3,5,6,8]];
+function rbox(s,r,sg){const g=new THREE.BoxGeometry(s,s,s,sg,sg,sg),p=g.attributes.position,n=g.attributes.normal,v=new THREE.Vector3(),c=new THREE.Vector3(),h=s/2-r;for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);c.copy(v).clampScalar(-h,h);v.sub(c).normalize();n.setXYZ(i,v.x,v.y,v.z);v.multiplyScalar(r).add(c);p.setXYZ(i,v.x,v.y,v.z)}return g}
+function init3d(){D.sp.forEach(q=>q.ax=new THREE.Vector3(0,1,0));RD=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,powerPreference:"high-performance"});AN=Math.min(8,RD.capabilities.getMaxAnisotropy());RD.setPixelRatio(Math.min(devicePixelRatio||1,2));RD.shadowMap.enabled=true;RD.shadowMap.type=THREE.PCFSoftShadowMap;RD.outputEncoding=THREE.sRGBEncoding;RD.toneMapping=THREE.ACESFilmicToneMapping;RD.toneMappingExposure=1.25;RD.setClearColor(0,0);
+SC=new THREE.Scene();CM=new THREE.PerspectiveCamera(34,1,.5,200);RC=new THREE.Raycaster();
+SC.add(new THREE.HemisphereLight(0xdfe8ff,0x20284f,.85));const sun=new THREE.DirectionalLight(0xfff0d8,1.2);sun.position.set(-6,14,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9,near:2,far:40});sun.shadow.bias=-.0004;SC.add(sun);
+const rim=new THREE.PointLight(0x6a8cff,1,45);rim.position.set(8,6,-9);SC.add(rim);const warm=new THREE.PointLight(0xffb86a,.6,30);warm.position.set(-8,5,8);SC.add(warm);
+const gnd=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.ShadowMaterial({opacity:.45}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-.61;gnd.receiveShadow=true;SC.add(gnd);
+const slab=new THREE.Mesh(new THREE.BoxGeometry(11.6,.6,11.6),new THREE.MeshStandardMaterial({color:lc("#0d1636"),roughness:.45,metalness:.25}));slab.position.y=-.3;slab.receiveShadow=slab.castShadow=true;SC.add(slab);
+const gold=new THREE.MeshStandardMaterial({color:lc("#d9a93a"),roughness:.3,metalness:.6});[[0,5.66,11.6,.16],[0,-5.66,11.6,.16],[5.66,0,.16,11.6],[-5.66,0,.16,11.6]].forEach(([x,z,w,d])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.1,d),gold);m.position.set(x,.03,z);m.castShadow=true;SC.add(m)});
+paintCenter(0);const ctr3=new THREE.Mesh(new THREE.PlaneGeometry(7.9,7.9),new THREE.MeshStandardMaterial({map:CTX,roughness:.5}));ctr3.rotation.x=-Math.PI/2;ctr3.position.y=.02;ctr3.receiveShadow=true;SC.add(ctr3);
+for(let i=0;i<40;i++){const[a,b,w,h]=R(i),sm=new THREE.MeshStandardMaterial({color:lc("#b8ac8c"),roughness:.6}),top=new THREE.MeshPhysicalMaterial({map:tex(i),roughness:.5,clearcoat:.5,clearcoatRoughness:.35}),m=new THREE.Mesh(new THREE.BoxGeometry(w*KW-.03,.5,h*KW-.03),[sm,sm,top,sm,sm,sm]);m.position.set(wx(a+w/2),TOP-.25,wx(b+h/2));m.castShadow=m.receiveShadow=true;m.userData.i=i;m.visible=false;SC.add(m);TM[i]=m}
+GL=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffc83a,transparent:true,opacity:.7,depthWrite:false}));GL.rotation.x=-Math.PI/2;GL.position.y=.035;GL.visible=false;SC.add(GL);
+PG=new THREE.LatheGeometry([[0,0],[.16,0],[.16,.04],[.12,.08],[.075,.2],[.065,.27],[.11,.3],[.11,.33],[.06,.36],[.09,.42],[.1,.5],[.075,.58],[0,.6]].map(p=>new THREE.Vector2(p[0]*.85,p[1]*.85)),28);
+const dg=rbox(.78,.13,12);for(let k=0;k<2;k++){const m=new THREE.Mesh(dg,FACE.map(v=>new THREE.MeshPhysicalMaterial({map:pips(v),roughness:.35,clearcoat:.6,clearcoatRoughness:.2})));m.castShadow=true;m.visible=false;SC.add(m);DM.push(m)}
+for(const v in N6)FQ[v]=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(...N6[v]),new THREE.Vector3(0,1,0));
+const dp=new Float32Array(450);for(let i=0;i<150;i++){dp[i*3]=(Math.random()-.5)*18;dp[i*3+1]=Math.random()*5+.5;dp[i*3+2]=(Math.random()-.5)*18}const dgm=new THREE.BufferGeometry();dgm.setAttribute("position",new THREE.BufferAttribute(dp,3));DU=new THREE.Points(dgm,new THREE.PointsMaterial({color:0xffd98a,size:.07,transparent:true,opacity:.55,depthWrite:false,blending:THREE.AdditiveBlending}));SC.add(DU);resize()}
+function resize(){const r=$("#stage").getBoundingClientRect();VW=Math.max(200,r.width|0);VH=Math.max(200,r.height|0);if(!RD)return;RD.setSize(VW,VH);CM.aspect=VW/VH;CM.updateProjectionMatrix()}
+function camIntro(){cam.az=1.3;cam.po=.12;cam.zoom=1.7;cam.taz=0;cam.tpo=.86;cam.tz=1}
+function mkPawn(p){const g=new THREE.Group(),b=new THREE.Mesh(PG,new THREE.MeshPhysicalMaterial({color:lc(p.c),roughness:.3,metalness:.25,clearcoat:.8}));b.castShadow=true;g.add(b);
+const c=cvs(128,128),q=c.getContext("2d");q.fillStyle=p.c;q.beginPath();q.arc(64,64,58,0,7);q.fill();q.lineWidth=8;q.strokeStyle="#fff";q.stroke();q.font=`64px ${EMO}`;q.textAlign="center";q.textBaseline="middle";q.fillText(p.e,64,70);
+const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:stex(c),depthTest:false,transparent:true}));sp.renderOrder=9;g.add(sp);g.userData={b,sp};SC.add(g);return g}
+function popup(txt,c,X,Y,i){const n=pop.filter(q=>q.i==i).length,cn=cvs(512,128),g=cn.getContext("2d");g.font="900 78px system-ui,sans-serif";g.textAlign="center";g.textBaseline="middle";g.lineWidth=14;g.lineJoin="round";g.strokeStyle="rgba(0,0,0,.8)";g.strokeText(txt,256,64);g.fillStyle=c;g.fillText(txt,256,64);
+const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:stex(cn),depthTest:false,transparent:true}));sp.scale.set(1.6,.4,1);sp.renderOrder=10;const y=TOP+lift[i]+1+n*.42;sp.position.set(wx(X),y,wx(Y));SC.add(sp);pop.push({sp,t:0,i,y})}
+let CG,CGM={};function burst(X,Y,i,good,v){CG=CG||new THREE.CylinderGeometry(.07,.07,.02,12);const m0=CGM[good]||(CGM[good]=new THREE.MeshStandardMaterial({color:lc(good?"#ffcf4a":"#ff6b6b"),roughness:.3,metalness:.4,emissive:lc(good?"#5a3f00":"#4a0000")}));
+for(let k=0;k<Math.min(16,Math.abs(v)/8+4);k++){const m=new THREE.Mesh(CG,m0);m.position.set(wx(X),TOP+lift[i]+.2,wx(Y));m.castShadow=true;SC.add(m);coins.push({m,vx:(Math.random()-.5)*3,vy:2.5+Math.random()*3,vz:(Math.random()-.5)*3,l:1.4,sp:(Math.random()-.5)*20})}}
+function fx(p,v){const[X,Y]=ctr(p.pos);if(!RD)return;popup((v>0?"+":"")+v+" jt",v>0?"#5dff9a":"#ff6b6b",X,Y,p.pos);burst(X,Y,p.pos,v>0,v)}
+async function roll(){bp(300);const fa=1+RN()*6|0,fb=1+RN()*6|0;D.v=[fa,fb];D.p=0;D.sp=[0,1].map(()=>({ax:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),n:(3+Math.random()*3)*Math.PI*2*(Math.random()<.5?-1:1),yaw:Math.random()*6.28}));await tween(1300,t=>{D.p=t});D.p=1;D.a=fa;D.b=fb;return fa+fb}
+const QY=new THREE.Quaternion(),QS=new THREE.Quaternion(),M4=new THREE.Matrix4(),UP=new THREE.Vector3(0,1,0);
+function dice(){const t=D.p,e=1-Math.pow(1-t,3),h=.39,rr=.13;DM.forEach((m,k)=>{const sp=D.sp[k],sg=k?1:-1;QY.setFromAxisAngle(UP,sp.yaw).multiply(FQ[D.v[k]]);QS.setFromAxisAngle(sp.ax,(1-e)*sp.n);m.quaternion.copy(QS.multiply(QY));M4.makeRotationFromQuaternion(m.quaternion);const el=M4.elements,ext=(h-rr)*(Math.abs(el[1])+Math.abs(el[5])+Math.abs(el[9]))+rr,air=Math.abs(Math.sin(t*Math.PI*3))*(1-t)*1.4+Math.pow(1-t,2)*1.8;
+m.position.set(sg*.75+sg*2.65*(1-e),.02+ext+air,.15+3.45*(1-e))})}
+function frame(now,dt){const it=(now-introT0)/1000,ke=1-Math.exp(-dt*5);
+cam.az+=(cam.taz-cam.az)*ke;cam.po+=(cam.tpo-cam.po)*ke;cam.zoom+=(cam.tz-cam.zoom)*ke;
+let mover=P.find(p=>p.mv);const tx=mover?wx(mover.mv.x)*.45:0,tz=mover?wx(mover.mv.y)*.45:0;cam.fx+=(tx-cam.fx)*ke*.6;cam.fz+=(tz-cam.fz)*ke*.6;
+const asp=VW/VH,R0=Math.max(17.5,20.5/asp)*cam.zoom,az=cam.az+(dr&&dr.m?0:Math.sin(now/3500)*.025),sp=Math.sin(cam.po);CM.position.set(cam.fx+R0*sp*Math.sin(az),R0*Math.cos(cam.po),cam.fz+R0*sp*Math.cos(az));CM.lookAt(cam.fx,0,cam.fz);
+for(let i=0;i<40;i++){const m=TM[i],o=own[i],oid=o?o.id:-1;if(own0[i]!==oid){if(oid>=0&&own0[i]!==undefined)lv[i]=3.4;own0[i]=oid;tex(i);m.material[0].color.copy(o?lc(o.c).multiplyScalar(.55):lc("#b8ac8c"))}
+const tg=(o?.1:0)+(hov==i?.12:0);lv[i]+=((tg-lift[i])*110-lv[i]*10)*dt;lift[i]+=lv[i]*dt;const tt=it-i*.022,x=Math.min(1,Math.max(0,tt/.9)),eb=1+2.70158*Math.pow(x-1,3)+1.70158*Math.pow(x-1,2);m.visible=tt>0;m.position.y=TOP-.25+lift[i]+(1-eb)*7}
+const done=it>1.9;DM.forEach(m=>m.visible=it>1.4);dice();
+const cp=P[cur];if(cp&&!over&&done){const gi=cp.pos,[a,b,w,h]=R(gi);GL.visible=true;GL.position.set(wx(a+w/2),.035,wx(b+h/2));GL.scale.set(w*KW+.14,h*KW+.14,1);GL.material.opacity=.5+.4*Math.sin(now/180)}else GL.visible=false;
+P.forEach(p=>{const g=PW[p.id]||(PW[p.id]=mkPawn(p)),mv=p.mv,q=mv?[mv.x,mv.y]:off(p,p.pos),z=mv?mv.z*KW:0,cu=p.id==cur&&!over,{b,sp:s}=g.userData;g.visible=!p.out&&done;g.position.set(wx(q[0]),TOP+lift[p.pos]+z,wx(q[1]));b.scale.y=1+Math.min(.35,z*.7);b.rotation.y+=mv?dt*9:0;s.position.y=.82+(cu?.1+Math.sin(now/200)*.06:0);const sz=cu?.36:.26;s.scale.set(sz,sz,1)});
+for(let i=pop.length-1;i>=0;i--){const q=pop[i];q.t+=dt;q.sp.position.y=q.y+q.t*.8;q.sp.material.opacity=Math.min(1,(1.6-q.t)*2);const sc=1+Math.max(0,.25-q.t)*2;q.sp.scale.set(1.6*sc,.4*sc,1);if(q.t>1.6){SC.remove(q.sp);q.sp.material.map.dispose();q.sp.material.dispose();pop.splice(i,1)}}
+for(let i=coins.length-1;i>=0;i--){const c=coins[i],m=c.m;c.vy-=11*dt;m.position.x+=c.vx*dt;m.position.y+=c.vy*dt;m.position.z+=c.vz*dt;if(m.position.y<TOP+.12&&c.vy<0){m.position.y=TOP+.12;c.vy*=-.45;c.vx*=.8;c.vz*=.8}m.rotation.x+=c.sp*dt;m.rotation.z+=c.sp*dt*.7;c.l-=dt;if(c.l<.3)m.scale.setScalar(Math.max(.01,c.l/.3));if(c.l<=0){SC.remove(m);coins.splice(i,1)}}
+DU.rotation.y+=dt*.03;DU.position.y=Math.sin(now/2000)*.2;
+const sk=(now/5000|0)%SL.length;if(sk!==slK){slK=sk;paintCenter(sk)}
+const tk=P.length?cur+"|"+over+"|"+(cp&&cp.n):"";if(tk!==turnK){turnK=tk;const el=$("#turn");if(cp&&!over){el.hidden=0;el.textContent=cp.e+" Giliran "+cp.n;el.style.background=cp.c;el.style.color="#10142e"}else el.hidden=1}
+const tt=hov>=0?T[hov][0]+" "+T[hov][1]+" · "+desc(hov):"Seret untuk memutar · gulir atau cubit untuk zoom · klik 2× untuk reset";if(tt!==hovK){hovK=tt;$("#tip").textContent=tt}
+RD.render(SC,CM)}
+function loop(n){const dt=Math.min(.05,(n-last)/1000||.016);last=n;if(RD)frame(n,dt);requestAnimationFrame(loop)}
+function pick(e){if(!RD)return;const r=cv.getBoundingClientRect();RC.setFromCamera({x:(e.clientX-r.left)/r.width*2-1,y:-((e.clientY-r.top)/r.height)*2+1},CM);const h=RC.intersectObjects(TM,false)[0];hov=h?h.object.userData.i:-1}
+const pts=new Map();let dr=null,pd=0;
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);dr={x:e.clientX,y:e.clientY,az:cam.taz,po:cam.tpo,m:0};if(pts.size==2){const[a,b]=[...pts.values()];pd=Math.hypot(a[0]-b[0],a[1]-b[1]);dr.m=1}});
+cv.addEventListener("pointermove",e=>{if(!pts.has(e.pointerId)){pick(e);return}pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size==2){const[a,b]=[...pts.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);cam.tz=clamp(cam.tz*pd/d,.6,1.5);pd=d;return}
+if(dr){const dx=e.clientX-dr.x,dy=e.clientY-dr.y;if(Math.abs(dx)+Math.abs(dy)>6)dr.m=1;if(dr.m){cam.taz=dr.az-dx*.006;cam.tpo=clamp(dr.po-dy*.005,.2,1.35)}}});
+const up=e=>{pts.delete(e.pointerId);if(!pts.size){if(dr&&!dr.m)pick(e);dr=null}};cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
+cv.addEventListener("pointerleave",()=>{if(!dr)hov=-1});
+cv.addEventListener("wheel",e=>{e.preventDefault();cam.tz=clamp(cam.tz*(e.deltaY>0?1.08:.92),.6,1.5)},{passive:false});
+cv.addEventListener("dblclick",()=>{cam.taz=0;cam.tpo=.86;cam.tz=1});
+try{if(typeof THREE=="undefined")throw 0;init3d()}catch(e){RD=null;console.error(e);setTimeout(()=>{const h=$("#hint");if(h)h.textContent="Grafik 3D gagal dimuat (WebGL atau Three.js tidak tersedia)."},0)}
+function startGame(c){if(started)return;started=1;seed=c.seed|0;own={};cur=0;over=0;fl=[];pt=[];Q=[];Wt=null;lastN={};
+P=c.pl.slice(0,4).map((h,i)=>({id:i,n:clean(h.name),e:AV[i][0],c:AV[i][1],bot:0,peer:h.peer}));
+for(let k=0,b=Math.min(c.bots|0,4-P.length);k<b;k++){const i=P.length;P.push({id:i,n:BN[k],e:AV[i][0],c:AV[i][1],bot:1,peer:null})}
+P.forEach(p=>Object.assign(p,{cash:1500,pos:0,jail:0,out:0,mv:null}));
+const mp=room&&room.peers().find(q=>q.sameTab);me=room?P.findIndex(p=>mp&&p.peer==mp.peer):0;
+$("#lb").hidden=1;introT0=performance.now();camIntro();ui();log("🇮🇩 Selamat datang! Modal Rp1.500 jt, nasib: sambat.");log("🖱️ Seret papan untuk memutar kamera, gulir untuk zoom, klik 2× untuk reset.");
+room&&room.onPeers(ch=>ch.left.forEach(l=>{const q=P.find(p=>p.peer==l.peer&&!p.bot);if(q)setTimeout(()=>{if(!over&&!room.peers().some(z=>z.peer==l.peer))room.emit("act",{k:"b",seat:q.id}).catch(()=>{})},6000)}));
+play()}
+const hint=m=>$("#hint").textContent=m;
+const humans=()=>room.peers().filter(p=>p.kind=="viewer"&&typeof p.presence.name=="string").sort((a,b)=>a.peer<b.peer?-1:1).slice(0,4);
+function lobby(){if(started||!room)return;const h=humans();$("#lst").innerHTML=h.map((p,i)=>`<div>${AV[i][0]} ${clean(p.presence.name)}${p.isMe&&p.sameTab?" (kamu)":""}</div>`).join("");$("#go").disabled=h.length<2;if(h.length<2)hint("Menunggu teman masuk… minimal 2 pemain.");else hint("Siap! Siapa saja boleh menekan Mulai.")}
+$("#solo").onclick=()=>startGame({seed:Date.now(),bots:3,pl:[{peer:"solo",name:$("#nm").value}]});
+$("#jn").onclick=async()=>{const code=($("#rc").value||"").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,12);if(!code)return hint("Isi kode ruang dulu, misalnya: sambat");hint("Menyambung…");
+try{const rm=typeof claude!="undefined"&&await claude.use("room");if(!rm)return hint("Mode online tidak tersedia di tampilan ini. Buka lewat tautan artifact dan masuk dulu.");room=await rm.join("mp-"+code)}catch(e){room=null;return hint("Gagal masuk ruang ("+(e.code||"error")+").")}
+room.presence({name:clean($("#nm").value)}).catch(()=>{});
+room.on("start",m=>{const d=m.data;if(started||!d||!Array.isArray(d.pl))return;startGame({seed:d.seed,bots:d.bots,pl:d.pl.filter(h=>h&&typeof h.peer=="string").map(h=>({peer:h.peer,name:String(h.name||"")}))})});
+room.on("act",m=>{const d=m.data;if(!started||!d||!Number.isInteger(d.seat)||!P[d.seat])return;if(d.k=="b")deliver({k:"b",seat:d.seat});else if(d.k=="a"&&typeof d.id=="string"&&Number.isInteger(d.n)&&P[d.seat].peer==m.peer)deliver({k:"a",seat:d.seat,id:d.id,n:d.n})});
+room.onPeers(lobby);$("#wr").hidden=0;$("#jn").disabled=1;$("#rc").disabled=1;lobby()};
+$("#go").onclick=()=>room.emit("start",{seed:Date.now()&0x7fffffff,bots:$("#fb").checked?4:0,pl:humans().map(p=>({peer:p.peer,name:clean(p.presence.name)}))}).catch(()=>hint("Gagal mulai. Pastikan semua temanmu punya akses Contributor atau lebih."));
+$("#rc").value=Math.random().toString(36).slice(2,6);
+addEventListener("resize",resize);resize();requestAnimationFrame(loop);
+</script></body></html>
